@@ -14,18 +14,30 @@ var stringifyJSON = function (obj) {
       return '"' + obj + '"';
 
     case 'object':
-      obj == null ? return 'null' :
-
-        var returnarray = _(obj).map(function(item, position, obj) {
-          if(typeof(item) !== 'object'){ 
-            if(Array.isArray(obj)){
+      if(obj == null) { return 'null'; } else {
+        var returnArray = _(obj).chain()
+          .map(function(item, position, obj) {
+            var typeo = typeof(item);
+            if(Array.isArray(obj) ){
               return stringifyJSON(item);
             } else {
-              return position + ':' + item;
+              if(typeo == 'undefined' || typeo == 'function'){
+                return;
+              } else {
+                return '"' + position + '":' + stringifyJSON(item);
+              }
             }
-          } else {
-            return stringifyJSON(item);
-          }
-        });
-      return true;  
-};
+          })
+          .reject(function(item) { return item == undefined; })
+          .value();
+      }
+
+      var cappies = { 'start': '{', 'end':'}' };
+      if(Array.isArray(obj)){
+        cappies['start'] = '[';
+        cappies['end'] = ']';
+      }    
+ 
+      return cappies['start'] + returnArray.join(',') + cappies['end'];
+  }  
+}
